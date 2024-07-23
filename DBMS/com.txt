@@ -1,0 +1,139 @@
+create table Employee(
+SSN int primary key,
+Name varchar(20),
+Address varchar(20),
+Sex varchar(10),
+Salary int,
+Super_SSN int references Employee(SSN) on delete cascade
+);
+
+create table Department(
+DNO int primary key,
+Dname varchar(20),
+Manager_SSN int references Employee(SSN) on delete cascade,
+Start_Date date
+);
+
+alter table Employee add DNO int references Department(DNO) on delete cascade;
+
+create table Dlocation(
+DNO int references Department(DNO) on delete cascade,
+Dloc varchar(20),
+primary key(DNO,Dloc)
+);
+
+create table Project(
+PNO int primary key,
+Pname varchar(20),
+Plocation varchar(20),
+DNO int references Department(DNO) on delete cascade
+);
+
+create table Works_On(
+SSN int references Employee(SSN) on delete cascade,
+PNO int references Project(PNO) on delete cascade,
+Hours int,
+primary key(SSN,PNO)
+);
+
+insert into Employee values(1,'Scott','Bangalore','Male',650000,null,null);
+insert into Employee values(2,'Mary','Delhi','Female',700000,null,null);
+insert into Employee values(3,'Louis','Bangalore','Male',500000,null,null);
+insert into Employee values(4,'Cindu','New York','Female',450000,null,null);
+insert into Employee values(5,'Baby','Delhi','Female',650000,null,null);
+insert into Employee values(6,'Siemen','Bangalore','Male',650000,null,null);
+insert into Employee values(7,'Rosy','Bangalore','Female',850000,null,null);
+insert into Employee values(8,'Ronaldo','Bangalore','Male',800000,null,null);
+insert into Employee values(9,'Messi','New York','Male',850000,null,null);
+insert into Employee values(10,'Ron','Bangalore','Male',800000,null,null);
+insert into Employee values(11,'Harry','New York','Male',850000,null,null);
+insert into Employee values(12,'Daniel','Bangalore','Male',800000,null,null);
+insert into Employee values(13,'Austin','New York','Male',850000,null,null);
+
+insert into Department values(50,'Development',1,'01-Jan-2018');
+insert into Department values(51,'HR',2,'01-Feb-2017');
+insert into Department values(52,'Accounts',5,'01-Mar-2018');
+insert into Department values(53,'Networking',8,'05-May-2016');
+
+update Employee set Super_SSN=3 ,DNO=50 where SSN=1;
+update Employee set Super_SSN=7 ,DNO=51 where SSN=2;
+update Employee set Super_SSN=4 ,DNO=50 where SSN=3;
+update Employee set Super_SSN=6 ,DNO=50 where SSN=4;
+update Employee set Super_SSN=3 ,DNO=51 where SSN=5;
+update Employee set Super_SSN=3 ,DNO=52 where SSN=6;
+update Employee set Super_SSN=1 ,DNO=52 where SSN=7;
+update Employee set Super_SSN=1 ,DNO=53 where SSN=8;
+update Employee set Super_SSN=4 ,DNO=53 where SSN=9;
+update Employee set Super_SSN=3 ,DNO=50 where SSN=10;
+update Employee set Super_SSN=3 ,DNO=50 where SSN=11;
+update Employee set Super_SSN=3 ,DNO=50 where SSN=12;
+update Employee set Super_SSN=3 ,DNO=53 where SSN=13;
+
+insert into Dlocation values(50,'Bangalore');
+insert into Dlocation values(50,'New York');
+insert into Dlocation values(50,'Delhi');
+insert into Dlocation values(51,'Bangalore');
+insert into Dlocation values(51,'Delhi');
+insert into Dlocation values(52,'Bangalore');
+insert into Dlocation values(52,'New York');
+insert into Dlocation values(53,'Bangalore');
+insert into Dlocation values(53,'Delhi');
+
+insert into Project values(1000,'IOT','Bangalore',50);
+insert into Project values(1001,'Web Development','Delhi',51);
+insert into Project values(1002,'Embedded Systems','Bangalore',50);
+insert into Project values(1003,'Hacking','New York',52);
+insert into Project values(1004,'Cryptography','Delhi',51);
+insert into Project values(1005,'Automata','Bangalore',53);
+
+insert into Works_On values(1,1000,10);
+insert into Works_On values(2,1000,8);
+insert into Works_On values(3,1000,5);
+insert into Works_On values(1,1001,6);
+insert into Works_On values(2,1002,7);
+insert into Works_On values(3,1005,8);
+insert into Works_On values(4,1002,5);
+insert into Works_On values(4,1003,4);
+insert into Works_On values(5,1001,6);
+insert into Works_On values(6,1004,10);
+insert into Works_On values(7,1000,8);
+insert into Works_On values(7,1003,6);
+insert into Works_On values(8,1004,5);
+insert into Works_On values(9,1002,7);
+
+SELECT p.pno
+FROM employee e, department d, project p
+WHERE p.dno = d.dno AND d.manager_ssn = e.ssn AND e.name = 'Scott'
+UNION
+SELECT w.pno
+FROM employee e, works_on w
+WHERE e.ssn = w.ssn AND e.name = 'Scott';
+
+SELECT name, 1.1 * salary AS raised_salary
+FROM employee e, project p, works_on w
+WHERE p.pname = 'IOT' AND p.pno = w.pno AND w.ssn = e.ssn;
+
+select sum(Salary) as sumsal, avg(Salary) as avgsal, min(Salary) as minsal, max(Salary) as
+maxsal
+from Employee e, Department d
+where e.dno=d.dno and d.Dname='Accounts';
+
+SELECT e.name
+FROM Employee e
+WHERE NOT EXISTS (
+  SELECT PNO 
+  FROM Project 
+  WHERE DNO = 5
+  EXCEPT
+  SELECT PNO 
+  FROM Works_On 
+  WHERE SSN = e.SSN
+);
+
+select e.dno, count(*) as Employee_count
+from employee e, department d
+where e.dno=d.dno and salary> 600000 and e.dno in ( select dno
+ from employee
+ group by dno
+ having count(*)>5)
+group by e.dno ;

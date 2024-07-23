@@ -1,0 +1,76 @@
+CREATE TABLE flights1(
+    Flno INT PRIMARY KEY, 
+    Source VARCHAR(20), 
+    Destination VARCHAR(20),
+    Distance INT,
+    DepartTime VARCHAR(10),
+    ArrivalTime VARCHAR(10),
+    Price INT
+);
+
+CREATE TABLE aircraft(
+    Aid INT PRIMARY KEY, 
+    Aname VARCHAR(20), 
+    CrusingRange INT
+);
+
+CREATE TABLE employees(
+    Eid INT PRIMARY KEY, 
+    Ename VARCHAR(20), 
+    Salary INT
+);
+
+CREATE TABLE certified(
+    Eid INT REFERENCES employees(Eid), 
+    Aid INT REFERENCES aircraft(Aid),
+    PRIMARY KEY (Eid, Aid)
+);
+INSERT INTO flights1 VALUES (101, 'Mysuru', 'Bangalore', 140, '9:30:00', '10:30:00', 5000);
+INSERT INTO flights1 VALUES (102, 'Mysuru', 'Hassan', 120, '13:00:00', '14:00:00', 5000);
+INSERT INTO flights1 VALUES (103, 'Mysuru', 'Manglore', 600, '6:00:00', '10:30:00', 5000);
+INSERT INTO flights1 VALUES (104, 'Mysuru', 'Ballary', 750, '7:00:00', '10:30:00', 5000);
+INSERT INTO flights1 VALUES (105, 'Bangalore', 'Hyderabad', 850, '12:00:00', '13:30:00', 5000);
+
+INSERT INTO aircraft VALUES (1001, 'Kingfisher', 2500);
+INSERT INTO aircraft VALUES (2002, 'Deccan', 2800);
+INSERT INTO aircraft VALUES (3003, 'Dishan', 3000);
+INSERT INTO aircraft VALUES (4004, 'Goibibo', 750);
+INSERT INTO aircraft VALUES (5005, 'Local', 900);
+
+INSERT INTO employees VALUES (11, 'Shivkumar', 150000);
+INSERT INTO employees VALUES (12, 'Bhaskar', 75000);
+INSERT INTO employees VALUES (13, 'DishanKrishna', 200000);
+INSERT INTO employees VALUES (15, 'Vishnu', 80000);
+INSERT INTO employees VALUES (20, 'Dhanu', 90000);
+
+INSERT INTO certified VALUES (11, 3003);
+INSERT INTO certified VALUES (11, 1001);
+INSERT INTO certified VALUES (11, 2002);
+INSERT INTO certified VALUES (13, 4004);
+INSERT INTO certified VALUES (12, 2002);
+
+select distinct aname
+from aircraft a,employees e,certified c
+where a.aid=c.aid and e.eid=c.eid and e.salary>80000;
+
+select e.eid , max(crusingrange)
+from employees e, certified c, aircraft a
+where e.eid=c.eid and a.aid=c.aid
+group by e.eid
+having count(*)>3;
+
+select a.aname , avg(salary)
+from employees e ,certified c, aircraft a
+where c.eid=e.eid and a.aid=c.aid and crusingrange>1000
+group by a.aname;
+
+select distinct e.ename
+from aircraft a,Certified c, Employees e
+where a.aid=c.aid and c.eid=e.eid
+and a.crusingrange>3000
+and c.aid not IN
+(select distinct aid from aircraft where aname like 'Boeing%' );
+
+select eid,ename,salary from employees
+where salary> (select avg(salary) from employees e, certified c where e.eid = c.eid)
+and eid not in (select eid from certified);
